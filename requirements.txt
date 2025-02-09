@@ -50,7 +50,7 @@ cryptography==3.4.8
 css-parser==1.0.7
 cssselect==1.1.0
 cssutils==1.0.2
-cupshelpers==1.0
+ciphelpers==1.0
 cycler==0.12.1
 dateparser==1.2.0
 dbus-python==1.2.18
