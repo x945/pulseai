@@ -76,7 +76,7 @@ djangorestframework==3.12.4
 dm-tree==0.1.8
 dnspython==2.1.0
 docstring_parser==0.16
-duplicity==0.8.21
+duplicity==3.0.3.2
 etils==1.7.0
 exceptiongroup==1.2.0
 executing==2.0.1
