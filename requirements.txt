@@ -343,3 +343,5 @@ yarl==1.9.4
 yfinance==0.2.33
 zeroconf==0.38.3
 zipp==1.0.0
+setuptools==75.8.0
+wheel==0.45.1
