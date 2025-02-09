@@ -53,7 +53,7 @@ def generate_text():
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-        
+
 
 @app.route("/process", methods=["POST"])
 def process_article():
@@ -73,4 +73,4 @@ def process_article():
     })
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)  # Make sure the port matches the one in the Next.js API call
+    app.run(debug=True)
