@@ -2,6 +2,9 @@
 # The first step is to define the base image. In this case, we are using a Python image.
 FROM python:3.12-slim
 
+# Install gettext
+RUN apt-get update && apt-get install -y gettext  
+
 # Step 2: Set a working directory inside the container
 # This is where your app will live inside the container.
 WORKDIR /app
