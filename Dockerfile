@@ -1,28 +1,28 @@
-# Step 1: Use a base image
-# The first step is to define the base image. In this case, we are using a Python image.
+# Step 1: Use a lightweight base image
 FROM python:3.12-slim
 
-# Install gettext
-RUN apt-get update && apt-get install -y gettext  
+# Step 2: Install system dependencies in a single RUN command
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gettext \
+    pkg-config \
+    libxml2-dev \
+    libxslt1-dev \
+ && rm -rf /var/lib/apt/lists/*  # Clean up to reduce image size
 
-# Step 2: Set a working directory inside the container
-# This is where your app will live inside the container.
+# Step 3: Set a working directory inside the container
 WORKDIR /app
 
-# Step 3: Copy your application files into the Docker image
-# We will copy all files from the local project to the Docker container.
+# Step 4: Copy application files first (excluding large unnecessary files)
 COPY . /app/
 
-# Step 4: Install any dependencies specified in requirements.txt
-# We use pip to install the requirements inside the virtual environment.
-RUN python -m venv /opt/venv
-RUN /opt/venv/bin/pip install --upgrade pip
-RUN /opt/venv/bin/pip install -r requirements.txt
+# Step 5: Create and activate a virtual environment
+RUN python -m venv /opt/venv \
+    && /opt/venv/bin/pip install --upgrade pip setuptools wheel \
+    && /opt/venv/bin/pip install -r requirements.txt \
+    && rm -rf ~/.cache/pip  # Clean up pip cache to reduce image size
 
-# Step 5: Expose a port (optional)
-# If your app is a web server or listens on a port, expose it.
+# Step 6: Expose a port if the app is a web server
 EXPOSE 8000
 
-# Step 6: Define the entry point for your application
-# The command that will run when the container starts.
+# Step 7: Define the entry point
 CMD ["/opt/venv/bin/python", "app.py"]
