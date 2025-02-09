@@ -30,20 +30,15 @@ def generate_text():
         if not tag:
             return jsonify({"error": "Tag is required"}), 400
 
-        # Combine the text from both sources
         combined_text = f"Provide a very short glance of the current situation regarding '{tag}' based on the following news articles and video content. Use a maximum of two lines to describe the key themes.\nNews Articles: {news_articles}\nVideo Content: {video_content}"
 
-        # Tokenize input text
         inputs = tokenizer(combined_text, return_tensors="pt", truncation=True, padding=True)
 
-        # Generate output text from the model
         with torch.no_grad():
             output = model.generate(inputs["input_ids"], max_length=100)  # Short output
           
-        # Decode the generated text
         generated_text = tokenizer.decode(output[0], skip_special_tokens=True)
         
-        # Perform sentiment analysis
         sentiment = sentiment_pipeline(generated_text)[0]  # {"label": "POSITIVE", "score": 0.99}
         
         return jsonify({
