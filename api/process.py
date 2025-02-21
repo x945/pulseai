@@ -100,3 +100,7 @@ def process_article():
     except Exception as e:
         logging.error("Error processing article: %s", str(e), exc_info=True)
         return jsonify({"error": "Internal server error"}), 500
+
+@app.route("/", methods=["GET"])
+def index():
+    return 'PulseAI Server'
