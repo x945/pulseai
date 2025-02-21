@@ -1,12 +1,42 @@
-from flask import Flask, request, jsonify
-import logging
+import os
 import json
+import logging
 import re
-from textblob import TextBlob  # Import textblob for sentiment analysis
+import nltk
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+from nltk.sentiment import SentimentIntensityAnalyzer
+from nltk.tokenize import word_tokenize
+from nltk import ne_chunk, pos_tag
+from nltk.tree import Tree
+
+# Download necessary NLTK resources
+nltk.download("punkt")
+nltk.download("maxent_ne_chunker")
+nltk.download("words")
+nltk.download("averaged_perceptron_tagger")
+nltk.download("vader_lexicon")
 
 app = Flask(__name__)
 
 logging.basicConfig(level=logging.INFO)
+
+# Initialize NLTK Sentiment Analyzer
+sia = SentimentIntensityAnalyzer()
+
+def extract_named_entities(text):
+    """Extract Named Entities using NLTK."""
+    named_entities = set()
+    words = word_tokenize(text)
+    pos_tags = pos_tag(words)
+    chunks = ne_chunk(pos_tags)
+
+    for chunk in chunks:
+        if isinstance(chunk, Tree):  # Check if chunk is a named entity
+            entity = " ".join(c[0] for c in chunk)
+            named_entities.add(entity)
+    
+    return named_entities
 
 @app.route("/process", methods=["POST"])
 def process_article():
@@ -20,30 +50,58 @@ def process_article():
             logging.warning("Text is missing in the request")
             return jsonify({"error": "Text is required"}), 400
 
-        # Truncate text to ensure it fits within the model's token limit
+        # Truncate text to prevent exceeding model limits
         truncated_text = text[:1024]
 
         # Initialize tags set
         tags = set()
 
-        # Sentiment Analysis using TextBlob
+        # Sentiment Analysis using NLTK's Vader
         try:
-            blob = TextBlob(truncated_text)
-            sentiment = blob.sentiment
+            sentiment_scores = sia.polarity_scores(truncated_text)
+            sentiment = {
+                "polarity": sentiment_scores["compound"],  # Compound score represents overall sentiment
+                "positivity": sentiment_scores["pos"],
+                "negativity": sentiment_scores["neg"],
+                "neutrality": sentiment_scores["neu"]
+            }
             logging.debug("Sentiment analysis result: %s", sentiment)
         except Exception as e:
             logging.error("Error during sentiment analysis: %s", str(e))
             return jsonify({"error": "Failed to perform sentiment analysis"}), 500
 
+        # Extract Named Entities using NLTK
+        try:
+            named_entities = extract_named_entities(truncated_text)
+            tags.update(named_entities)
+            logging.debug("Extracted tags from named entities: %s", tags)
+        except Exception as e:
+            logging.error("Error during NER extraction: %s", str(e))
+            return jsonify({"error": "Failed to extract named entities"}), 500
+
+        # Crypto Coins Detection
+        try:
+            coins_file_path = os.path.join(os.path.dirname(__file__), "static", "coins.json")
+
+            with open(coins_file_path, "r") as file:
+                data = json.load(file)
+
+            crypto_names = {coin["name"].lower() for coin in data}  # Set for fast lookup
+
+            words_cleaned = {re.sub(r"[^\w\s]", "", word.lower()) for word in text.split()}  # Normalize words
+
+            for word in words_cleaned:
+                if word in crypto_names and all(word.lower() != tag.lower() for tag in tags):
+                    tags.add(word.capitalize())  # Capitalize for better formatting
+        except Exception as e:
+            logging.error("Error during crypto coin detection: %s", str(e))
+            return jsonify({"error": "Failed to detect crypto coins"}), 500
 
         return jsonify({
-            "sentiment": {
-                "polarity": sentiment.polarity,
-                "subjectivity": sentiment.subjectivity
-            }
+            "sentiment": sentiment,
+            "tags": list(tags)  # Convert set to list for JSON serialization
         })
 
     except Exception as e:
         logging.error("Error processing article: %s", str(e), exc_info=True)
         return jsonify({"error": "Internal server error"}), 500
-
