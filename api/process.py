@@ -1,16 +1,14 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from transformers import pipeline
 import spacy
 import logging
 import json
 import re
+from textblob import TextBlob  # Import textblob for sentiment analysis
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for cross-origin requests
 
-# Initialize sentiment analysis pipeline
-sentiment_pipeline = pipeline("sentiment-analysis", model="huawei-noah/TinyBERT_General_4L_312D")
 # Initialize spaCy for Named Entity Recognition (NER)
 nlp = spacy.load("en_core_web_sm")
 
@@ -34,9 +32,10 @@ def process_article():
         # Initialize tags set
         tags = set()
 
-        # Sentiment Analysis
+        # Sentiment Analysis using TextBlob
         try:
-            sentiment = sentiment_pipeline(truncated_text)[0]  # Ensuring max input size
+            blob = TextBlob(truncated_text)
+            sentiment = blob.sentiment
             logging.debug("Sentiment analysis result: %s", sentiment)
         except Exception as e:
             logging.error("Error during sentiment analysis: %s", str(e))
@@ -73,10 +72,14 @@ def process_article():
             return jsonify({"error": "Failed to detect crypto coins"}), 500
 
         return jsonify({
-            "sentiment": sentiment,
+            "sentiment": {
+                "polarity": sentiment.polarity,
+                "subjectivity": sentiment.subjectivity
+            },
             "tags": list(tags)  # Convert set to list for JSON serialization
         })
 
     except Exception as e:
         logging.error("Error processing article: %s", str(e), exc_info=True)
         return jsonify({"error": "Internal server error"}), 500
+
