@@ -1,16 +1,23 @@
 {
-    "version": 2,
-    "builds": [
-      {
-        "src": "api/process.py",
-        "use": "@vercel/python"
-      }
-    ],
-    "routes": [
-      {
-        "src": "/process",
-        "dest": "api/process.py"
-      }
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/process.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/process",
+      "dest": "api/process.py"
+    }
+  ],
+  "build": {
+    "env": {
+      "SPACY_MODEL": "en_core_web_sm"
+    },
+    "postbuild": [
+      "python -m spacy download en_core_web_sm"
     ]
   }
-  
+}
