@@ -1,5 +1,4 @@
 from flask import Flask, request, jsonify
-from flask_cors import CORS
 import spacy
 import logging
 import json
@@ -7,7 +6,6 @@ import re
 from textblob import TextBlob  # Import textblob for sentiment analysis
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for cross-origin requests
 
 # Initialize spaCy for Named Entity Recognition (NER)
 nlp = spacy.load("en_core_web_sm")
