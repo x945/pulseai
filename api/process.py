@@ -10,12 +10,7 @@ from nltk.tokenize import word_tokenize
 from nltk import ne_chunk, pos_tag
 from nltk.tree import Tree
 
-# Download necessary NLTK resources
-nltk.download("punkt")
-nltk.download("maxent_ne_chunker")
-nltk.download("words")
-nltk.download("averaged_perceptron_tagger")
-nltk.download("vader_lexicon")
+nltk.data.path.append(os.path.join(os.path.dirname(__file__), "..", "nltk_data"))
 
 app = Flask(__name__)
 
