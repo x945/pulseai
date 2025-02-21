@@ -10,7 +10,7 @@ app = Flask(__name__)
 CORS(app)  # Enable CORS for cross-origin requests
 
 # Initialize sentiment analysis pipeline
-sentiment_pipeline = pipeline("sentiment-analysis", model="distilbert-base-uncased")
+sentiment_pipeline = pipeline("sentiment-analysis", model="huawei-noah/TinyBERT_General_4L_312D")
 # Initialize spaCy for Named Entity Recognition (NER)
 nlp = spacy.load("en_core_web_sm")
 
