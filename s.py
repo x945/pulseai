@@ -1,8 +1,10 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from transformers import pipeline, BartForConditionalGeneration, BartTokenizer
-from keybert import KeyBERT
+from sentence_transformers import SentenceTransformer
+import spacy
 import logging
+from sklearn.metrics.pairwise import cosine_similarity
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for cross-origin requests
@@ -15,7 +17,7 @@ model = BartForConditionalGeneration.from_pretrained(model_name)
 # Initialize pipelines
 sentiment_pipeline = pipeline("sentiment-analysis", model="distilbert-base-uncased-finetuned-sst-2-english")
 summarizer = pipeline("summarization", model=model_name)
-kw_model = KeyBERT()
+nlp = spacy.load("en_core_web_md")
 
 logging.basicConfig(level=logging.INFO)
 
@@ -31,39 +33,52 @@ def process_article():
             logging.warning("Text is missing in the request")
             return jsonify({"error": "Text is required"}), 400
 
-        # Truncate text manually (avoiding unnecessary tokenizer.decode())
-        truncated_text = text[:512]
+        # Truncate text to ensure it fits within the model's token limit
+        truncated_text = text[:1024]
+
+        # Initialize tags set
+        tags = set()
 
         # Sentiment Analysis
         try:
-            sentiment = sentiment_pipeline(truncated_text[:512])[0]  # Ensuring max input size
+            sentiment = sentiment_pipeline(truncated_text)[0]  # Ensuring max input size
             logging.debug("Sentiment analysis result: %s", sentiment)
         except Exception as e:
             logging.error("Error during sentiment analysis: %s", str(e))
             return jsonify({"error": "Failed to perform sentiment analysis"}), 500
 
-        # Extract Keywords using KeyBERT
+        # Extract Named Entities using spaCy
         try:
-            keywords = kw_model.extract_keywords(
-                truncated_text,
-                keyphrase_ngram_range=(1, 2),
-                stop_words="english",
-                top_n=10
-            )
-            extracted_keywords = [word for word, score in keywords if score > 0.3]  # Lower threshold
-            logging.debug("Extracted keywords: %s", extracted_keywords)
+            doc = nlp(truncated_text)
+            # Filter useful entities and add to tags set
+            for ent in doc.ents:
+                if ent.label_ in ["ORG", "PERSON", "GPE", "MONEY", "PRODUCT", "NORP", "FAC", "LOC", "EVENT", "WORK_OF_ART", "LAW"]:
+                    tags.add(ent.text)
+            logging.debug("Extracted tags from named entities: %s", tags)
         except Exception as e:
-            logging.error("Error during keyword extraction: %s", str(e))
-            return jsonify({"error": "Failed to extract keywords"}), 500
+            logging.error("Error during tags extraction: %s", str(e))
+            return jsonify({"error": "Failed to extract tags"}), 500
+
+        # Crypto Coins Detection
+        try:
+            words = text.split()
+            for word in words:
+                for coin in crypto_memes:
+                    if word.lower() == coin["symbol"] or word.lower() == coin["name"].lower():
+                        tags.add(word)
+        except Exception as e:
+            logging.error("Error during crypto coin detection: %s", str(e))
+            return jsonify({"error": "Failed to detect crypto coins"}), 500
 
         return jsonify({
             "sentiment": sentiment,
-            "tags": extracted_keywords
+            "tags": list(tags)  # Convert set to list for JSON serialization
         })
 
     except Exception as e:
         logging.error("Error processing article: %s", str(e), exc_info=True)
         return jsonify({"error": "Internal server error"}), 500
+
 
 @app.route("/generate", methods=["POST"])
 def generate_text():
