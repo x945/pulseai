@@ -12,6 +12,10 @@ from nltk.tree import Tree
 
 nltk.data.path.append(os.path.join(os.path.dirname(__file__), "..", "nltk_data"))
 
+import os
+print("NLTK Data Path:", nltk.data.path)
+print("Files in NLTK Data Directory:", os.listdir(os.path.join(os.path.dirname(__file__), "..", "nltk_data")))
+
 app = Flask(__name__)
 
 logging.basicConfig(level=logging.INFO)
