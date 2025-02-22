@@ -9,12 +9,9 @@ from nltk.sentiment import SentimentIntensityAnalyzer
 from nltk.tokenize import word_tokenize
 from nltk import ne_chunk, pos_tag
 from nltk.tree import Tree
+import os
 
 nltk.data.path.append(os.path.join(os.path.dirname(__file__), "..", "nltk_data"))
-
-import os
-print("NLTK Data Path:", nltk.data.path)
-print("Files in NLTK Data Directory:", os.listdir(os.path.join(os.path.dirname(__file__), "..", "nltk_data")))
 
 app = Flask(__name__)
 
@@ -40,6 +37,8 @@ def extract_named_entities(text):
 @app.route("/process", methods=["POST"])
 def process_article():
     logging.debug("Received request: %s", request.get_json())
+    print("NLTK Data Path:", nltk.data.path)
+    print("Files in NLTK Data Directory:", os.listdir(os.path.join(os.path.dirname(__file__), "..", "nltk_data")))
 
     try:
         data = request.get_json()
