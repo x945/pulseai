@@ -36,7 +36,7 @@ def extract_named_entities(text):
 
 @app.route("/process", methods=["POST"])
 def process_article():
-    logging.debug("Received request: %s", request.get_json())
+    logging.debug(f"Received request: {request.get_json()}")
     print("NLTK Data Path:", nltk.data.path)
     print("Files in NLTK Data Directory:", os.listdir(os.path.join(os.path.dirname(__file__), "..", "nltk_data")))
 
@@ -63,18 +63,18 @@ def process_article():
                 "negativity": sentiment_scores["neg"],
                 "neutrality": sentiment_scores["neu"]
             }
-            logging.debug("Sentiment analysis result: %s", sentiment)
+            logging.debug(f"Sentiment analysis result: {sentiment}")
         except Exception as e:
-            logging.error("Error during sentiment analysis: %s", str(e))
+            logging.error(f"Error during sentiment analysis: {e}")
             return jsonify({"error": "Failed to perform sentiment analysis"}), 500
 
         # Extract Named Entities using NLTK
         try:
             named_entities = extract_named_entities(truncated_text)
             tags.update(named_entities)
-            logging.debug("Extracted tags from named entities: %s", tags)
+            logging.debug(f"Extracted tags from named entities: {tags}")
         except Exception as e:
-            logging.error("Error during NER extraction: %s", str(e))
+            logging.error(f"Error during NER extraction: {e}")
             return jsonify({"error": "Failed to extract named entities"}), 500
 
         # Crypto Coins Detection
@@ -92,7 +92,7 @@ def process_article():
                 if word in crypto_names and all(word.lower() != tag.lower() for tag in tags):
                     tags.add(word.capitalize())  # Capitalize for better formatting
         except Exception as e:
-            logging.error("Error during crypto coin detection: %s", str(e))
+            logging.error(f"Error during crypto coin detection: {e}")
             return jsonify({"error": "Failed to detect crypto coins"}), 500
 
         return jsonify({
@@ -101,7 +101,7 @@ def process_article():
         })
 
     except Exception as e:
-        logging.error("Error processing article: %s", str(e), exc_info=True)
+        logging.error(f"Error processing article: {e}", exc_info=True)
         return jsonify({"error": "Internal server error"}), 500
 
 @app.route("/", methods=["GET"])
