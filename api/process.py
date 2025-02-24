@@ -21,7 +21,7 @@ logging.basicConfig(level=logging.INFO)
 sia = SentimentIntensityAnalyzer()
 
 def extract_named_entities(text):
-    """Extract Named Entities using NLTK."""
+    """Extract Named Entities using NLTK and ensure they are capitalized."""
     named_entities = set()
     words = word_tokenize(text)
     pos_tags = pos_tag(words)
@@ -30,7 +30,8 @@ def extract_named_entities(text):
     for chunk in chunks:
         if isinstance(chunk, Tree):  # Check if chunk is a named entity
             entity = " ".join(c[0] for c in chunk)
-            named_entities.add(entity)
+            # Capitalize each entity before adding it
+            named_entities.add(entity.title())  # Ensures proper capitalization
     
     return named_entities
 
@@ -43,6 +44,7 @@ def process_article():
     try:
         data = request.get_json()
         text = data.get("text", "").strip()
+        category = data.get("category")
 
         if not text:
             logging.warning("Text is missing in the request")
@@ -77,23 +79,24 @@ def process_article():
             logging.error(f"Error during NER extraction: {e}")
             return jsonify({"error": "Failed to extract named entities"}), 500
 
-        # Crypto Coins Detection
-        try:
-            coins_file_path = os.path.join(os.path.dirname(__file__), "static", "coins.json")
+        # Perform Crypto Coins Detection only if category is 'cryptocurrency'
+        if category and category.lower() == "cryptocurrency":
+            try:
+                coins_file_path = os.path.join(os.path.dirname(__file__), "static", "coins.json")
 
-            with open(coins_file_path, "r") as file:
-                data = json.load(file)
+                with open(coins_file_path, "r") as file:
+                    coin_data = json.load(file)
 
-            crypto_names = {coin["name"].lower() for coin in data}  # Set for fast lookup
+                crypto_names = {coin["name"].lower() for coin in coin_data}  # Set for fast lookup
 
-            words_cleaned = {re.sub(r"[^\w\s]", "", word.lower()) for word in text.split()}  # Normalize words
+                words_cleaned = {re.sub(r"[^\w\s]", "", word.lower()) for word in text.split()}  # Normalize words
 
-            for word in words_cleaned:
-                if word in crypto_names and all(word.lower() != tag.lower() for tag in tags):
-                    tags.add(word.capitalize())  # Capitalize for better formatting
-        except Exception as e:
-            logging.error(f"Error during crypto coin detection: {e}")
-            return jsonify({"error": "Failed to detect crypto coins"}), 500
+                for word in words_cleaned:
+                    if word in crypto_names and all(word.lower() != tag.lower() for tag in tags):
+                        tags.add(word.capitalize())  # Capitalize for better formatting
+            except Exception as e:
+                logging.error(f"Error during crypto coin detection: {e}")
+                return jsonify({"error": "Failed to detect crypto coins"}), 500
 
         return jsonify({
             "sentiment": sentiment,
