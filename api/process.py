@@ -9,7 +9,6 @@ from nltk.sentiment import SentimentIntensityAnalyzer
 from nltk.tokenize import word_tokenize
 from nltk import ne_chunk, pos_tag
 from nltk.tree import Tree
-import os
 
 nltk.data.path.append(os.path.join(os.path.dirname(__file__), "..", "nltk_data"))
 
@@ -19,6 +18,107 @@ logging.basicConfig(level=logging.INFO)
 
 # Initialize NLTK Sentiment Analyzer
 sia = SentimentIntensityAnalyzer()
+
+# Define a set of stopwords (meaningless tags to remove)
+stopwords_set = {
+    "latest", "now", "week", "month", "today", "breaking", "update", "hour", "news", "recent", "current",
+    "daily", "weekly", "monthly", "yearly", "day", "night", "morning", "evening", "midnight", "afternoon",
+    "minute", "second", "soon", "moment", "while", "before", "after", "yesterday", "tomorrow", "tonight",
+    "headline", "trending", "live", "watch", "hot", "flash", "instant", "special", "exclusive", "featured",
+    "reported", "report", "coverage", "announcement", "story", "storyline", "press", "article", "blog",
+    "read", "written", "editorial", "post", "shared", "link", "source", "details", "info", "information",
+    "about", "regarding", "summary", "analysis", "discussion", "opinion", "reaction", "review", "explained",
+    "revealed", "find", "found", "according", "statement", "quoted", "declared", "mentioned", "noted",
+    "breaking news", "hot topic", "must see", "viral", "thread", "threaded", "debate", "argument", "trending now",
+    "alert", "emergency", "warning", "exclusive update", "this just in", "up next", "coming soon", "stay tuned",
+    "insights", "reveals", "insider", "leak", "rumor", "speculation", "guess", "assumption", "potential", "expected",
+    "possibly", "alleged", "reportedly", "unconfirmed", "maybe", "likely", "prediction", "forecast", "outlook", "column"
+}
+
+tickers = {
+    "AAPL", "NVDA", "MSFT", "AMZN", "GOOGL", "META", "BRK.A", "TSLA", "AVGO", "LLY",
+    "WMT", "JPM", "V", "MA", "XOM", "ORCL", "COST", "UNH", "NFLX", "AMD",
+    "PG", "ABBV", "CVX", "MRK", "PEP", "KO", "ADBE", "TMO", "ASML", "PFE",
+    "NKE", "INTC", "CSCO", "CRM", "DHR", "MCD", "ACN", "LIN", "TXN", "AMAT",
+    "NOW", "NFLX", "UPS", "HON", "QCOM", "SBUX", "GS", "IBM", "C", "INTU",
+    "MDT", "LOW", "BLK", "CAT", "ELV", "CHTR", "NEE", "SPGI", "T", "ISRG",
+    "PLD", "DE", "LRCX", "BA", "MO", "BKNG", "VRTX", "REGN", "GE", "ADI",
+    "MS", "CI", "GILD", "AXP", "BSX", "FISV", "TJX", "PGR", "PYPL", "SYK",
+    "HUM", "FIS", "SNPS", "CME", "D", "ADP", "GM", "TGT", "CSX", "DUK",
+    "ZTS", "SO", "BDX", "WM", "CL", "MMC", "ICE", "EW", "EQIX", "EMR"
+}
+
+companies = {
+    "Apple",
+    "NVIDIA",
+    "Microsoft",
+    "Amazon",
+    "Alphabet",
+    "Saudi Aramco",
+    "Meta",
+    "Tesla",
+    "Berkshire Hathaway",
+    "Broadcom",
+    "TSMC",
+    "Eli Lilly",
+    "Walmart",
+    "JPMorgan",
+    "Visa",
+    "Tencent",
+    "Mastercard",
+    "Exxon",
+    "Oracle",
+    "Costco",
+    "UnitedHealth",
+    "Netflix",
+    "Procter & Gamble",
+    "Novo Nordisk",
+    "Johnson & Johnson",
+    "Home Depot",
+    "LVMH",
+    "AbbVie",
+    "Bank of America",
+    "SAP",
+    "ICBC",
+    "Coca-Cola",
+    "T-Mobile",
+    "Hermès",
+    "Salesforce",
+    "ASML",
+    "Toyota",
+    "Chevron",
+    "Samsung",
+    "Roche",
+    "Kweichow Moutai",
+    "Wells Fargo",
+    "Cisco",
+    "Agricultural Bank of China",
+    "Pfizer",
+    "L'Oréal",
+    "Abbott",
+    "AMD",
+    "Adobe",
+    "Novartis",
+    "Reliance",
+    "McDonald's",
+    "Blackstone",
+    "American Express",
+    "HSBC",
+    "Intuit",
+    "Qualcomm",
+    "Texas Instruments",
+    "Verizon",
+    "PepsiCo",
+    "Caterpillar",
+    "Raytheon",
+    "Booking Holdings",
+    "S&P Global",
+    "Intuitive Surgical",
+    "Morgan Stanley",
+    "Tata Consultancy Services",
+    "Linde",
+    "Thermo Fisher",
+}
 
 def extract_named_entities(text):
     """Extract Named Entities using NLTK and ensure they are capitalized."""
@@ -30,7 +130,6 @@ def extract_named_entities(text):
     for chunk in chunks:
         if isinstance(chunk, Tree):  # Check if chunk is a named entity
             entity = " ".join(c[0] for c in chunk)
-            # Capitalize each entity before adding it
             named_entities.add(entity.title())  # Ensures proper capitalization
     
     return named_entities
@@ -38,9 +137,7 @@ def extract_named_entities(text):
 @app.route("/process", methods=["POST"])
 def process_article():
     logging.debug(f"Received request: {request.get_json()}")
-    print("NLTK Data Path:", nltk.data.path)
-    print("Files in NLTK Data Directory:", os.listdir(os.path.join(os.path.dirname(__file__), "..", "nltk_data")))
-
+    
     try:
         data = request.get_json()
         text = data.get("text", "").strip()
@@ -50,17 +147,15 @@ def process_article():
             logging.warning("Text is missing in the request")
             return jsonify({"error": "Text is required"}), 400
 
-        # Truncate text to prevent exceeding model limits
-        truncated_text = text[:1024]
+        truncated_text = text[:1024]  # Truncate text to prevent exceeding model limits
 
-        # Initialize tags set
         tags = set()
 
         # Sentiment Analysis using NLTK's Vader
         try:
             sentiment_scores = sia.polarity_scores(truncated_text)
             sentiment = {
-                "polarity": sentiment_scores["compound"],  # Compound score represents overall sentiment
+                "polarity": sentiment_scores["compound"],  
                 "positivity": sentiment_scores["pos"],
                 "negativity": sentiment_scores["neg"],
                 "neutrality": sentiment_scores["neu"]
@@ -78,6 +173,18 @@ def process_article():
         except Exception as e:
             logging.error(f"Error during NER extraction: {e}")
             return jsonify({"error": "Failed to extract named entities"}), 500
+        
+        # Perform Tickers Search only if category is 'markets'
+        if category and category.lower() == "markets":
+            try:
+                words_cleaned = {re.sub(r"[^\w\.\-]", "", word) for word in text.split()}  # Preserve "." and "-"
+                
+                for word in words_cleaned:
+                    if word in (tickers | companies) and word not in tags:
+                        tags.add(word)  # Keep tickers as they are
+            except Exception as e:
+                logging.error(f"Error during tickers search: {e}")
+                return jsonify({"error": "Failed to search tickers"}), 500
 
         # Perform Crypto Coins Detection only if category is 'cryptocurrency'
         if category and category.lower() == "cryptocurrency":
@@ -88,7 +195,6 @@ def process_article():
                     coin_data = json.load(file)
 
                 crypto_names = {coin["name"].lower() for coin in coin_data}  # Set for fast lookup
-
                 words_cleaned = {re.sub(r"[^\w\s]", "", word.lower()) for word in text.split()}  # Normalize words
 
                 for word in words_cleaned:
@@ -97,6 +203,9 @@ def process_article():
             except Exception as e:
                 logging.error(f"Error during crypto coin detection: {e}")
                 return jsonify({"error": "Failed to detect crypto coins"}), 500
+
+        # **Filter Out Stopwords from Tags**
+        tags = {tag for tag in tags if tag.lower() not in stopwords_set}
 
         return jsonify({
             "sentiment": sentiment,
@@ -110,7 +219,3 @@ def process_article():
 @app.route("/", methods=["GET"])
 def index():
     return 'PulseAI Server'
-
-# Run Flask app locally
-# if __name__ == "__main__":
-#     app.run(host="0.0.0.0", port=5000, debug=True)
