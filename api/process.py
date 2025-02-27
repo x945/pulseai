@@ -32,7 +32,14 @@ stopwords_set = {
     "breaking news", "hot topic", "must see", "viral", "thread", "threaded", "debate", "argument", "trending now",
     "alert", "emergency", "warning", "exclusive update", "this just in", "up next", "coming soon", "stay tuned",
     "insights", "reveals", "insider", "leak", "rumor", "speculation", "guess", "assumption", "potential", "expected",
-    "possibly", "alleged", "reportedly", "unconfirmed", "maybe", "likely", "prediction", "forecast", "outlook", "column"
+    "possibly", "alleged", "reportedly", "unconfirmed", "maybe", "likely", "prediction", "forecast", "outlook", "column",
+    "Bitfinex", "Alpha", "New", "Crypto", "Bitcoin News", "House", "West", "Million", "High", "Surge", "Top", "No",
+    "Video", "Coin", "Us", "Drops", "Serb", "Trailer", "Black", "Activist", "First", "Cash", "Match", "Best", "Why",
+    "News Digest", "How", "Home", "Health", "Dawn", "Boost", "Super", "Safe", "Tested", "Sir", "Guide", "Future",
+    "Make", "Answer", "Will", "Which", "When", "Value", "Secret", "React", "Price", "Pay", "Network", "Into", "Human",
+    "Hidden", "Help", "Everyone", "Dark", "Card", "Channel", "Key", "Film", "Way", "Visible", "Unknown", "Trend",
+    "Tips", "The", "Takes", "System", "Show", "Secrets", "Season", "Same", "Save", "Role", "Robust", "Rise", "Return",
+    "Reality", "Has", "Fresh", "For", "Could", "Would", "Response"
 }
 
 tickers = {
@@ -120,6 +127,32 @@ companies = {
     "Thermo Fisher",
 }
 
+football = {
+    "Arsenal", "Aston Villa", "Bournemouth", "Brentford", "Brighton & Hove Albion", "Burnley",
+    "Chelsea", "Crystal Palace", "Everton", "Fulham", "Liverpool", "Luton Town", "Manchester City",
+    "Manchester United", "Newcastle United", "Nottingham Forest", "Sheffield United",
+    "Tottenham Hotspur", "West Ham United", "Wolverhampton Wanderers",
+    "Aberdeen", "Celtic", "Dundee", "Dundee United", "Heart of Midlothian", "Hibernian",
+    "Kilmarnock", "Livingston", "Motherwell", "Rangers", "Ross County", "St. Johnstone", "St. Mirren",
+    "Aberystwyth Town", "Airbus UK Broughton", "Bala Town", "Barry Town United", "Caernarfon Town",
+    "Cardiff Metropolitan University", "Connah's Quay Nomads", "Flint Town United",
+    "Haverfordwest County", "Newtown", "Penybont", "The New Saints",
+    "Ballymena United", "Carrick Rangers", "Cliftonville", "Coleraine", "Crusaders",
+    "Dungannon Swifts", "Glenavon", "Glentoran", "Larne", "Linfield", "Newry City", "Portadown",
+    "Real Madrid", "Barcelona", "PSG", "Bayern", "Juve",
+    "Atleti", "Milan", "Inter", "Dortmund", "Napoli",
+    "RB Leipzig", "Sevilla", "Roma", "Lazio", "Bayer Leverkusen",
+    "Lyon", "Ajax", "Benfica", "Shakhtar", "Porto",
+    "Sporting", "Villarreal", "Atalanta", "Galatasaray", "Fenerbahçe",
+    "Marseille", "Zenit", "Salzburg", "Dynamo Kyiv", "Brugge",
+    "Flamengo", "River", "Boca", "São Paulo", "Palmeiras",
+    "Santos", "Grêmio", "Monterrey", "Tigres", "Al Ahly",
+    "Zamalek", "Sundowns", "Al-Hilal", "Jeonbuk", "Kashima", 
+    "Ulsan", "Club América", "Independiente", "Peñarol", "Nacional"
+}
+
+
+
 def extract_named_entities(text):
     """Extract Named Entities using NLTK and ensure they are capitalized."""
     named_entities = set()
@@ -203,6 +236,17 @@ def process_article():
             except Exception as e:
                 logging.error(f"Error during crypto coin detection: {e}")
                 return jsonify({"error": "Failed to detect crypto coins"}), 500
+
+        if category and category.lower() == "sports":
+            try:
+                words_cleaned = {re.sub(r"[^\w\.\-]", "", word) for word in text.split()}  # Preserve "." and "-"
+                
+                for word in words_cleaned:
+                    if word in football and word not in tags:
+                        tags.add(word)  # Keep tickers as they are
+            except Exception as e:
+                logging.error(f"Error during tickers search: {e}")
+                return jsonify({"error": "Failed to search tickers"}), 500
 
         # **Filter Out Stopwords from Tags**
         tags = {tag for tag in tags if tag.lower() not in stopwords_set}
