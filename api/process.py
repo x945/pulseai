@@ -33,13 +33,13 @@ stopwords_set = {
     "alert", "emergency", "warning", "exclusive update", "this just in", "up next", "coming soon", "stay tuned",
     "insights", "reveals", "insider", "leak", "rumor", "speculation", "guess", "assumption", "potential", "expected",
     "possibly", "alleged", "reportedly", "unconfirmed", "maybe", "likely", "prediction", "forecast", "outlook", "column",
-    "Bitfinex", "Alpha", "New", "Crypto", "Bitcoin News", "House", "West", "Million", "High", "Surge", "Top", "No",
-    "Video", "Coin", "Us", "Drops", "Serb", "Trailer", "Black", "Activist", "First", "Cash", "Match", "Best", "Why",
-    "News Digest", "How", "Home", "Health", "Dawn", "Boost", "Super", "Safe", "Tested", "Sir", "Guide", "Future",
-    "Make", "Answer", "Will", "Which", "When", "Value", "Secret", "React", "Price", "Pay", "Network", "Into", "Human",
-    "Hidden", "Help", "Everyone", "Dark", "Card", "Channel", "Key", "Film", "Way", "Visible", "Unknown", "Trend",
-    "Tips", "The", "Takes", "System", "Show", "Secrets", "Season", "Same", "Save", "Role", "Robust", "Rise", "Return",
-    "Reality", "Has", "Fresh", "For", "Could", "Would", "Response"
+    "bitfinex", "alpha", "new", "crypto", "bitcoin news", "house", "west", "million", "high", "surge", "top", "no",
+    "video", "coin", "us", "drops", "serb", "trailer", "black", "activist", "first", "cash", "match", "best", "why",
+    "news digest", "how", "home", "health", "dawn", "boost", "super", "safe", "tested", "sir", "guide", "future",
+    "make", "answer", "will", "which", "when", "value", "secret", "react", "price", "pay", "network", "into", "human",
+    "hidden", "help", "everyone", "dark", "card", "channel", "key", "film", "way", "visible", "unknown", "trend",
+    "tips", "the", "takes", "system", "show", "secrets", "season", "same", "save", "role", "robust", "rise", "return",
+    "reality", "has", "fresh", "for", "could", "would", "response"
 }
 
 tickers = {
