@@ -39,7 +39,24 @@ stopwords_set = {
     "make", "answer", "will", "which", "when", "value", "secret", "react", "price", "pay", "network", "into", "human",
     "hidden", "help", "everyone", "dark", "card", "channel", "key", "film", "way", "visible", "unknown", "trend",
     "tips", "the", "takes", "system", "show", "secrets", "season", "same", "save", "role", "robust", "rise", "return",
-    "reality", "has", "fresh", "for", "could", "would", "response"
+    "reality", "has", "fresh", "for", "could", "would", "response", 'use', 'reviewed', 'ethereum news', 'asset', 'big', 
+    'major', 'reach', 'zone', 'trust', 'among first', 'worst month', 'that', 'strong', 'unprecedented', 'price movements',
+    'sex scenes', 'woman', 'times asks', 'sex trafficking charges', 'says', 'rush', 'part', 'offset', 'live stream', 'women',
+    'earth', 'meet',
+}
+
+agencies = {
+    'acf', 'acl', 'ada', 'adf', 'afrh', 'ahrq', 'aid', 'alat', 'ambc', 'ams', 'aphis', 'arc', 'ars', 
+    'atf', 'bea', 'bia', 'bja', 'bjs', 'blm', 'bls', 'bop', 'bpa', 'bts', 'cbo', 'cbp', 'cdc', 'cftc', 
+    'cgr', 'cigie', 'cio', 'cisa', 'cit', 'cja', 'cms', 'cncs', 'cpsc', 'crs', 'csb', 'csosa', 'cvc', 
+    'dhs', 'dia', 'dla', 'doc', 'dod', 'doe', 'doi', 'doj', 'dol', 'dos', 'dot', 'dpc', 'dtra', 'eac', 
+    'ebsa', 'eda', 'ed', 'eeoc', 'eere', 'eia', 'epa', 'erda', 'esa', 'faa', 'fas', 'fbi', 'fbop', 
+    'fcc', 'fda', 'fdic', 'fec', 'fema', 'ferc', 'fhfa', 'fhlb', 'firb', 'fletc', 'fmcsa', 'fmc', 
+    'fmcs', 'fmshrc', 'fncs', 'fns', 'fpc', 'fra', 'frb', 'fsa', 'fsis', 'fss', 'ftc', 'fws', 'gao', 
+    'gsa', 'hhs', 'hhs-oig', 'his', 'hmd', 'hpc', 'hrsa', 'hud', 'iaf', 'ice', 'ida', 'ifc', 'imf', 
+    'ins', 'interpol', 'irs', 'ita', 'itc', 'jag', 'jcs', 'jpl', 'lac', 'lra', 'mcc', 'mda', 'mms', 
+    'msha', 'nasa', 'nara', 'nass', 'ncua', 'nea', 'neh', 'nga', 'nhtsa', 'nibin', 'nic', 'nifa', 
+    'nih', 'nist', 'nlrb'
 }
 
 tickers = {
@@ -128,29 +145,52 @@ companies = {
 }
 
 football = {
-    "Arsenal", "Aston Villa", "Bournemouth", "Brentford", "Brighton & Hove Albion", "Burnley",
-    "Chelsea", "Crystal Palace", "Everton", "Fulham", "Liverpool", "Luton Town", "Manchester City",
-    "Manchester United", "Newcastle United", "Nottingham Forest", "Sheffield United",
-    "Tottenham Hotspur", "West Ham United", "Wolverhampton Wanderers",
-    "Aberdeen", "Celtic", "Dundee", "Dundee United", "Heart of Midlothian", "Hibernian",
-    "Kilmarnock", "Livingston", "Motherwell", "Rangers", "Ross County", "St. Johnstone", "St. Mirren",
-    "Aberystwyth Town", "Airbus UK Broughton", "Bala Town", "Barry Town United", "Caernarfon Town",
-    "Cardiff Metropolitan University", "Connah's Quay Nomads", "Flint Town United",
-    "Haverfordwest County", "Newtown", "Penybont", "The New Saints",
-    "Ballymena United", "Carrick Rangers", "Cliftonville", "Coleraine", "Crusaders",
-    "Dungannon Swifts", "Glenavon", "Glentoran", "Larne", "Linfield", "Newry City", "Portadown",
-    "Real Madrid", "Barcelona", "PSG", "Bayern", "Juve",
-    "Atleti", "Milan", "Inter", "Dortmund", "Napoli",
-    "RB Leipzig", "Sevilla", "Roma", "Lazio", "Bayer Leverkusen",
-    "Lyon", "Ajax", "Benfica", "Shakhtar", "Porto",
-    "Sporting", "Villarreal", "Atalanta", "Galatasaray", "Fenerbahçe",
-    "Marseille", "Zenit", "Salzburg", "Dynamo Kyiv", "Brugge",
-    "Flamengo", "River", "Boca", "São Paulo", "Palmeiras",
-    "Santos", "Grêmio", "Monterrey", "Tigres", "Al Ahly",
-    "Zamalek", "Sundowns", "Al-Hilal", "Jeonbuk", "Kashima", 
-    "Ulsan", "Club América", "Independiente", "Peñarol", "Nacional"
+    "arsenal", "aston villa", "bournemouth", "brentford", "brighton & hove albion", "burnley",
+    "chelsea", "crystal palace", "everton", "fulham", "liverpool", "luton town", "manchester city",
+    "manchester united", "newcastle united", "nottingham forest", "sheffield united",
+    "tottenham hotspur", "west ham united", "wolverhampton wanderers",
+    "aberdeen", "celtic", "dundee", "dundee united", "heart of midlothian", "hibernian",
+    "kilmarnock", "livingston", "motherwell", "rangers", "ross county", "st. johnstone", "st. mirren",
+    "aberystwyth town", "airbus uk broughton", "bala town", "barry town united", "caernarfon town",
+    "cardiff metropolitan university", "connah's quay nomads", "flint town united",
+    "haverfordwest county", "newtown", "penybont", "the new saints",
+    "ballymena united", "carrick rangers", "cliftonville", "coleraine", "crusaders",
+    "dungannon swifts", "glenavon", "glentoran", "larne", "linfield", "newry city", "portadown",
+    "real madrid", "barcelona", "psg", "bayern", "juve",
+    "atleti", "milan", "inter", "dortmund", "napoli",
+    "rb leipzig", "sevilla", "roma", "lazio", "bayer leverkusen",
+    "lyon", "ajax", "benfica", "shakhtar", "porto",
+    "sporting", "villarreal", "atalanta", "galatasaray", "fenerbahçe",
+    "marseille", "zenit", "salzburg", "dynamo kyiv", "brugge",
+    "flamengo", "river", "boca", "são paulo", "palmeiras",
+    "santos", "grêmio", "monterrey", "tigres", "al ahly",
+    "zamalek", "sundowns", "al-hilal", "jeonbuk", "kashima", 
+    "ulsan", "club américa", "independiente", "peñarol", "nacional"
 }
 
+crypto = {
+    'btc', 'eth', 'xrp', 'bnb', 'sol', 'doge', 'ada', 'steth', 'shib', 'hbar',
+    'om', 'hype', 'dot', 'bch', 'bgb', 'uni', 'plsx', 'xmr', 'wbt', 'near',
+    'pepe', 'aave', 'tao', 'ondo', 'apt', 'icp', 'tkx', 'trump', 'etc', 'mnt',
+    'gt', 'okb', 's', 'bopb', 'vet', 'fet', 'jup', 'op', 'inj', 'kcs', 'ldo',
+    'reth', 'qnt', 'stx', 'jto', 'virtual', 'bera', 'ron', 'cake', 'spx',
+    'hnt', 'crv', 'pls', 'axs'
+}
+
+us_teams = {
+    'afa', 'akr', 'ala', 'app', 'ariz', 'asu', 'ark', 'arst', 'army', 'aub',
+    'ball', 'bay', 'bc', 'bgsu', 'bsu', 'buff', 'byu', 'cal', 'ccu', 'char',
+    'cin', 'clem', 'cmu', 'colo', 'csu', 'duke', 'ecu', 'emu', 'fau', 'fiu',
+    'fla', 'fsu', 'fres', 'gaso', 'gast', 'gt', 'haw', 'hou', 'idho', 'ill',
+    'ind', 'iowa', 'isu', 'ksu', 'ku', 'ken', 'lib', 'lou', 'lt', 'lsu', 'mem',
+    'mia', 'miao', 'mich', 'minn', 'miss', 'miz', 'msu', 'mtu', 'navy', 'ncst',
+    'nd', 'neb', 'nev', 'nmsu', 'ntx', 'nw', 'odu', 'ohio', 'okla', 'okst',
+    'orst', 'ou', 'pitt', 'psu', 'pur', 'rice', 'rut', 'sala', 'sdsu', 'smu',
+    'sou', 'stan', 'syr', 'ta&m', 'tcu', 'tem', 'tenn', 'tex', 'tol', 'troy',
+    'tuln', 'tuls', 'uab', 'ucf', 'ucla', 'uga', 'uk', 'um', 'umass', 'unc',
+    'unlv', 'unt', 'usc', 'usf', 'usm', 'utep', 'utsa', 'uva', 'van', 'vt',
+    'wash', 'wazu', 'wcu', 'wis', 'wmu', 'wvu', 'wyo'
+}
 
 
 def extract_named_entities(text):
@@ -206,6 +246,16 @@ def process_article():
         except Exception as e:
             logging.error(f"Error during NER extraction: {e}")
             return jsonify({"error": "Failed to extract named entities"}), 500
+
+        try:
+            words_cleaned = {re.sub(r"[^\w\.\-]", "", word.lower()) for word in text.split()}  # Preserve "." and "-"
+            
+            for word in words_cleaned:
+                if word in crypto and word not in tags:
+                    tags.add(word.upper())  # Keep tickers as they are
+        except Exception as e:
+            logging.error(f"Error during tickers search: {e}")
+            return jsonify({"error": "Failed to search tickers"}), 500
         
         # Perform Tickers Search only if category is 'markets'
         if category and category.lower() == "markets":
@@ -239,11 +289,14 @@ def process_article():
 
         if category and category.lower() == "sports":
             try:
-                words_cleaned = {re.sub(r"[^\w\.\-]", "", word) for word in text.split()}  # Preserve "." and "-"
+                words_cleaned = {re.sub(r"[^\w\.\-]", "", word.lower()) for word in text.split()}  # Preserve "." and "-"
                 
                 for word in words_cleaned:
                     if word in football and word not in tags:
-                        tags.add(word)  # Keep tickers as they are
+                        tags.add(word.title())  # Keep tickers as they are
+                for word in words_cleaned:
+                    if word in us_teams and word not in tags:
+                        tags.add(word.upper())  # Keep tickers as they are
             except Exception as e:
                 logging.error(f"Error during tickers search: {e}")
                 return jsonify({"error": "Failed to search tickers"}), 500
@@ -251,9 +304,12 @@ def process_article():
         # **Filter Out Stopwords from Tags**
         tags = {tag for tag in tags if tag.lower() not in stopwords_set}
 
+        # call upper on agencies tags
+        final_tags = {tag.upper() if tag in agencies else tag for tag in tags}
+
         return jsonify({
             "sentiment": sentiment,
-            "tags": list(tags)  # Convert set to list for JSON serialization
+            "tags": list(final_tags)  # Convert set to list for JSON serialization
         })
 
     except Exception as e:
