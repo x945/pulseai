@@ -42,7 +42,7 @@ stopwords_set = {
     "reality", "has", "fresh", "for", "could", "would", "response", 'use', 'reviewed', 'ethereum news', 'asset', 'big', 
     'major', 'reach', 'zone', 'trust', 'among first', 'worst month', 'that', 'strong', 'unprecedented', 'price movements',
     'sex scenes', 'woman', 'times asks', 'sex trafficking charges', 'says', 'rush', 'part', 'offset', 'live stream', 'women',
-    'earth', 'meet',
+    'earth', 'meet', 'odds'
 }
 
 agencies = {
@@ -168,10 +168,19 @@ football = {
     "ulsan", "club américa", "independiente", "peñarol", "nacional"
 }
 
+leagues = {
+    "NFL", "NBA", "MLB", "NHL", "MLS",
+    "WNBA", "NWSL", "CFL", "XFL", "USFL",
+    "MLR", "PLL", "NLL", "USL", "USL1",
+    "USL2", "MLSNP", "AHL", "ECHL", "G League",
+    "ATP", "WTA", "PGA", "LIV", "INDYCAR",
+    "NASCAR"
+}
+
 crypto = {
     'btc', 'eth', 'xrp', 'bnb', 'sol', 'doge', 'ada', 'steth', 'shib', 'hbar',
     'om', 'hype', 'dot', 'bch', 'bgb', 'uni', 'plsx', 'xmr', 'wbt', 'near',
-    'pepe', 'aave', 'tao', 'ondo', 'apt', 'icp', 'tkx', 'trump', 'etc', 'mnt',
+    'pepe', 'aave', 'tao', 'ondo', 'apt', 'icp', 'tkx', 'etc', 'mnt',
     'gt', 'okb', 's', 'bopb', 'vet', 'fet', 'jup', 'op', 'inj', 'kcs', 'ldo',
     'reth', 'qnt', 'stx', 'jto', 'virtual', 'bera', 'ron', 'cake', 'spx',
     'hnt', 'crv', 'pls', 'axs'
@@ -203,7 +212,7 @@ def extract_named_entities(text):
     for chunk in chunks:
         if isinstance(chunk, Tree):  # Check if chunk is a named entity
             entity = " ".join(c[0] for c in chunk)
-            named_entities.add(entity.title())  # Ensures proper capitalization
+            named_entities.add(entity)  # Ensures proper capitalization
     
     return named_entities
 
@@ -247,12 +256,6 @@ def process_article():
             logging.error(f"Error during NER extraction: {e}")
             return jsonify({"error": "Failed to extract named entities"}), 500
 
-        try:
-            words_cleaned = {re.sub(r"[^\w\.\-]", "", word.lower()) for word in text.split()}  # Preserve "." and "-"
-            
-            for word in words_cleaned:
-                if word in crypto and word not in tags:
-                    tags.add(word.upper())  # Keep tickers as they are
         except Exception as e:
             logging.error(f"Error during tickers search: {e}")
             return jsonify({"error": "Failed to search tickers"}), 500
@@ -263,8 +266,12 @@ def process_article():
                 words_cleaned = {re.sub(r"[^\w\.\-]", "", word) for word in text.split()}  # Preserve "." and "-"
                 
                 for word in words_cleaned:
-                    if word in (tickers | companies) and word not in tags:
+                    if word.title() in companies and all(word.lower() != tag.lower() for tag in tags):
                         tags.add(word)  # Keep tickers as they are
+                    if word.upper() in tickers and all(word.lower() != tag.lower() for tag in tags):
+                        tags.add(word.upper())  # Keep tickers as they are
+                    if word.lower() in crypto and all(word.lower() != tag.lower() for tag in tags):
+                        tags.add(word.upper())  # Keep tickers as they are
             except Exception as e:
                 logging.error(f"Error during tickers search: {e}")
                 return jsonify({"error": "Failed to search tickers"}), 500
@@ -278,11 +285,14 @@ def process_article():
                     coin_data = json.load(file)
 
                 crypto_names = {coin["name"].lower() for coin in coin_data}  # Set for fast lookup
-                words_cleaned = {re.sub(r"[^\w\s]", "", word.lower()) for word in text.split()}  # Normalize words
+                words_cleaned = {re.sub(r"[^\w\s]", "", word) for word in text.split()}  # Normalize words
 
                 for word in words_cleaned:
                     if word in crypto_names and all(word.lower() != tag.lower() for tag in tags):
-                        tags.add(word.capitalize())  # Capitalize for better formatting
+                        tags.add(word)  # Capitalize for better formatting
+
+                    if word.lower() in crypto and all(word.lower() != tag.lower() for tag in tags):
+                        tags.add(word.upper())  # Keep tickers as they are
             except Exception as e:
                 logging.error(f"Error during crypto coin detection: {e}")
                 return jsonify({"error": "Failed to detect crypto coins"}), 500
@@ -292,11 +302,14 @@ def process_article():
                 words_cleaned = {re.sub(r"[^\w\.\-]", "", word.lower()) for word in text.split()}  # Preserve "." and "-"
                 
                 for word in words_cleaned:
-                    if word in football and word not in tags:
-                        tags.add(word.title())  # Keep tickers as they are
+                    if word.lower() in football and all(word.lower() != tag.lower() for tag in tags):
+                        tags.add(word)  # Keep tickers as they are
                 for word in words_cleaned:
-                    if word in us_teams and word not in tags:
-                        tags.add(word.upper())  # Keep tickers as they are
+                    if word.lower() in us_teams and all(word.lower() != tag.lower() for tag in tags):
+                        tags.add(word)  # Keep tickers as they are
+                for word in words_cleaned:
+                    if word.lower() in leagues and all(word.lower() != tag.lower() for tag in tags):
+                        tags.add(word)  # Keep tickers as they are
             except Exception as e:
                 logging.error(f"Error during tickers search: {e}")
                 return jsonify({"error": "Failed to search tickers"}), 500
@@ -305,7 +318,7 @@ def process_article():
         tags = {tag for tag in tags if tag.lower() not in stopwords_set}
 
         # call upper on agencies tags
-        final_tags = {tag.upper() if tag in agencies else tag for tag in tags}
+        final_tags = {tag.upper() if tag.lower() in agencies else tag for tag in tags}
 
         return jsonify({
             "sentiment": sentiment,
