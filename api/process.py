@@ -61,6 +61,30 @@ world_affairs_keywords = {
     "red sea attacks", "taiwan tensions", "hezbollah", "icj ruling", "gaza war"
 }
 
+entertainment_keywords = {
+    # General
+    "celebrity", "celebrities", "gossip", "drama", "entertainment", "hollywood", "red carpet", "scandal",
+
+    # Movies & TV
+    "movie", "film", "box office", "blockbuster", "series", "tv", "tv show", "netflix", "hbo", "prime video",
+    "disney+", "apple tv", "hulu", "trailer", "premiere", "sequel", "reboot", "remake", "director",
+    "actor", "actress", "cast", "scene", "script", "screenplay", "filmmaker", "cinema", "production",
+    "studio", "release date", "ratings",
+
+    # Music
+    "music", "song", "single", "album", "track", "billboard", "grammys", "mtv", "spotify", "itunes",
+    "tour", "concert", "festival", "musician", "artist", "rapper", "singer", "dj", "band", "pop", "rap",
+    "hip hop", "rock", "edm", "country", "lyrics", "remix",
+
+    # Awards
+    "oscars", "academy awards", "golden globes", "emmys", "grammy", "bafta", "sundance", "cannes",
+
+    # Celebrities & Trends
+    "kardashian", "taylor swift", "beyoncé", "drake", "rihanna", "kanye", "bad bunny", "selena gomez",
+    "harry styles", "zendaya", "timothée chalamet", "tom holland", "margot robbie", "barbie movie",
+    "social media", "viral", "influencer", "reality show", "met gala", "fashion", "award show", "red carpet"
+}
+
 sports_keywords = {
     "match", "goal", "tournament", "final", "score", "league", "athlete", "coach", "referee",
     "injury", "stadium", "champion", "world cup", "olympics", "nba", "nfl", "mlb", "nhl", "ufc",
@@ -239,6 +263,7 @@ category_keywords = {
     "us": us_news_keywords,
     "technology": technology_keywords,
     "world": world_affairs_keywords,
+    "entertainment": entertainment_keywords,
     "sports": sports_keywords,
     "science": science_keywords
 }
@@ -374,6 +399,13 @@ def process_article():
             # World Affairs
             "un": "UN",
             "icj ruling": "ICJ Ruling",
+
+            # Entertainment
+            "tv": "TV",
+            "tv show": "TV Show",
+            "hbo": "HBO",
+            "dj": "DJ",
+            "edm": "EDM",
             
             # Science
             "covid": "COVID",
