@@ -6,9 +6,6 @@ import nltk
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from nltk.sentiment import SentimentIntensityAnalyzer
-from nltk.tokenize import word_tokenize
-from nltk import ne_chunk, pos_tag
-from nltk.tree import Tree
 
 nltk.data.path.append(os.path.join(os.path.dirname(__file__), "..", "nltk_data"))
 
@@ -19,30 +16,65 @@ logging.basicConfig(level=logging.INFO)
 # Initialize NLTK Sentiment Analyzer
 sia = SentimentIntensityAnalyzer()
 
-# Define a set of stopwords (meaningless tags to remove)
-stopwords_set = {
-    "latest", "now", "week", "month", "today", "breaking", "update", "hour", "news", "recent", "current",
-    "daily", "weekly", "monthly", "yearly", "day", "night", "morning", "evening", "midnight", "afternoon",
-    "minute", "second", "soon", "moment", "while", "before", "after", "yesterday", "tomorrow", "tonight",
-    "headline", "trending", "live", "watch", "hot", "flash", "instant", "special", "exclusive", "featured",
-    "reported", "report", "coverage", "announcement", "story", "storyline", "press", "article", "blog",
-    "read", "written", "editorial", "post", "shared", "link", "source", "details", "info", "information",
-    "about", "regarding", "summary", "analysis", "discussion", "opinion", "reaction", "review", "explained",
-    "revealed", "find", "found", "according", "statement", "quoted", "declared", "mentioned", "noted",
-    "breaking news", "hot topic", "must see", "viral", "thread", "threaded", "debate", "argument", "trending now",
-    "alert", "emergency", "warning", "exclusive update", "this just in", "up next", "coming soon", "stay tuned",
-    "insights", "reveals", "insider", "leak", "rumor", "speculation", "guess", "assumption", "potential", "expected",
-    "possibly", "alleged", "reportedly", "unconfirmed", "maybe", "likely", "prediction", "forecast", "outlook", "column",
-    "bitfinex", "alpha", "new", "crypto", "bitcoin news", "house", "west", "million", "high", "surge", "top", "no",
-    "video", "coin", "us", "drops", "serb", "trailer", "black", "activist", "first", "cash", "match", "best", "why",
-    "news digest", "how", "home", "health", "dawn", "boost", "super", "safe", "tested", "sir", "guide", "future",
-    "make", "answer", "will", "which", "when", "value", "secret", "react", "price", "pay", "network", "into", "human",
-    "hidden", "help", "everyone", "dark", "card", "channel", "key", "film", "way", "visible", "unknown", "trend",
-    "tips", "the", "takes", "system", "show", "secrets", "season", "same", "save", "role", "robust", "rise", "return",
-    "reality", "has", "fresh", "for", "could", "would", "response", 'use', 'reviewed', 'ethereum news', 'asset', 'big', 
-    'major', 'reach', 'zone', 'trust', 'among first', 'worst month', 'that', 'strong', 'unprecedented', 'price movements',
-    'sex scenes', 'woman', 'times asks', 'sex trafficking charges', 'says', 'rush', 'part', 'offset', 'live stream', 'women',
-    'earth', 'meet', 'odds'
+financial_markets_keywords = {
+    "stock", "stocks", "market", "markets", "nasdaq", "dow", "s&p", "sp500", "ftse", "bond", "bonds",
+    "treasury", "yield", "interest rate", "inflation", "recession", "gdp", "economy", "economic",
+    "federal reserve", "fed", "rate hike", "earnings", "ipo", "index", "indices", "commodities",
+    "oil", "gold", "futures", "etf", "mutual fund", "hedge fund", "portfolio", "dividend", "capital",
+    "valuation", "debt", "equity", "buyback", "quarterly", "bear", "bull", "volatility", "investors",
+    "retail", "institutional", "trading", "financials", "analyst", "forecast", "macro", "micro",
+    "ai stocks", "tech rally", "bond selloff", "soft landing", "jobs report", "labor market",
+    "inflation data", "rate cut", "fed meeting"
+}
+
+cryptocurrency_keywords = {
+    "crypto", "blockchain", "web3", "coin", "token", "defi", "nft", "bitcoin", "ethereum", "altcoin",
+    "wallet", "exchange", "binance", "coinbase", "crypto market", "mining", "staking", "airdrop",
+    "smart contract", "gas fees", "dex", "cex", "metamask", "ledger", "cold storage", "tokenomics",
+    "halving", "crypto trading", "rug pull", "crypto crash", "bull run", "bear market",
+    "bitcoin etf", "eth upgrade", "layer 2", "ordinals", "zk rollups", "defi lending"
+}
+
+us_news_keywords = {
+    "biden", "trump", "white house", "congress", "senate", "house of representatives", "democrats",
+    "republicans", "election", "midterms", "supreme court", "lawsuit", "governor", "state", "capitol",
+    "senator", "representative", "shooting", "storm", "flood", "wildfire", "police", "fbi", "crime",
+    "immigration", "border", "irs", "debt ceiling", "government shutdown", "military", "pentagon",
+    "campaign", "infrastructure", "healthcare", "social security", "medicare", "veterans", "national",
+    "2024 elections", "primary debates", "trump trial", "border crisis", "school shootings"
+}
+
+technology_keywords = {
+    "ai", "artificial intelligence", "machine learning", "deep learning", "data science", "cloud",
+    "saas", "software", "hardware", "semiconductor", "chip", "quantum", "robot", "automation",
+    "startups", "tech", "gadgets", "app", "apps", "app store", "play store", "android", "ios",
+    "smartphone", "laptop", "device", "internet", "cybersecurity", "hack", "breach", "meta", "google",
+    "microsoft", "amazon", "elon musk", "tesla", "openai", "chatgpt", "neuralink", "apple", "spacex",
+    "generative ai", "sora", "groq", "ai race", "ai regulation", "data leak",
+}
+
+world_affairs_keywords = {
+    "un", "united nations", "war", "conflict", "peace", "diplomacy", "treaty", "summit", "nato",
+    "g7", "g20", "embassy", "foreign minister", "ambassador", "geopolitics", "russia", "china",
+    "ukraine", "iran", "north korea", "israel", "palestine", "gaza", "refugee", "human rights",
+    "migration", "protest", "coup", "election", "diplomatic", "sanction", "regime", "international",
+    "red sea attacks", "taiwan tensions", "hezbollah", "icj ruling", "gaza war"
+}
+
+sports_keywords = {
+    "match", "goal", "tournament", "final", "score", "league", "athlete", "coach", "referee",
+    "injury", "stadium", "champion", "world cup", "olympics", "nba", "nfl", "mlb", "nhl", "ufc",
+    "mma", "boxing", "fifa", "epl", "la liga", "serie a", "champions league", "draft", "transfer",
+    "trade", "playoff", "season", "game", "win", "loss", "draw",
+    "march madness", "super bowl", "nfl draft", "f1", "cricket world cup", "injury report"
+}
+
+science_keywords = {
+    "research", "study", "scientists", "experiment", "data", "climate", "physics", "chemistry",
+    "biology", "genetics", "lab", "discovery", "innovation", "medical", "vaccine", "pandemic",
+    "covid", "health", "medicine", "quantum", "space", "nasa", "james webb", "earthquake",
+    "volcano", "weather", "planet", "galaxy", "neuroscience", "disease", "biology", "biotech",
+    "climate tipping point", "ozone hole", "covid variant", "ai", "asteroid approach"
 }
 
 agencies = {
@@ -60,17 +92,17 @@ agencies = {
 }
 
 tickers = {
-    "AAPL", "NVDA", "MSFT", "AMZN", "GOOGL", "META", "BRK.A", "TSLA", "AVGO", "LLY",
-    "WMT", "JPM", "V", "MA", "XOM", "ORCL", "COST", "UNH", "NFLX", "AMD",
-    "PG", "ABBV", "CVX", "MRK", "PEP", "KO", "ADBE", "TMO", "ASML", "PFE",
-    "NKE", "INTC", "CSCO", "CRM", "DHR", "MCD", "ACN", "LIN", "TXN", "AMAT",
-    "NOW", "NFLX", "UPS", "HON", "QCOM", "SBUX", "GS", "IBM", "C", "INTU",
-    "MDT", "LOW", "BLK", "CAT", "ELV", "CHTR", "NEE", "SPGI", "T", "ISRG",
-    "PLD", "DE", "LRCX", "BA", "MO", "BKNG", "VRTX", "REGN", "GE", "ADI",
-    "MS", "CI", "GILD", "AXP", "BSX", "FISV", "TJX", "PGR", "PYPL", "SYK",
-    "HUM", "FIS", "SNPS", "CME", "D", "ADP", "GM", "TGT", "CSX", "DUK",
-    "ZTS", "SO", "BDX", "WM", "CL", "MMC", "ICE", "EW", "EQIX", "EMR"
-}
+    "aapl", "nvda", "msft", "amzn", "googl", "meta", "brk.a", "tsla", "avgo", "lly",
+    "wmt", "jpm", "v", "ma", "xom", "orcl", "cost", "unh", "nflx", "amd",
+    "pg", "abbv", "cvx", "mrk", "pep", "ko", "adbe", "tmo", "asml", "pfe",
+    "nke", "intc", "csco", "crm", "dhr", "mcd", "acn", "lin", "txn", "amat",
+    "now", "ups", "hon", "qcom", "sbux", "gs", "ibm", "c", "intu",
+    "mdt", "low", "blk", "cat", "elv", "chtr", "nee", "spgi", "t", "isrg",
+    "pld", "de", "lrcx", "ba", "mo", "bkng", "vrtx", "regn", "ge", "adi",
+    "ms", "ci", "gild", "axp", "bsx", "fisv", "tjx", "pgr", "pypl", "syk",
+    "hum", "fis", "snps", "cme", "d", "adp", "gm", "tgt", "csx", "duk",
+    "zts", "so", "bdx", "wm", "cl", "mmc", "ice", "ew", "eqix", "emr"
+} 
 
 companies = {
     "Apple",
@@ -145,36 +177,36 @@ companies = {
 }
 
 football = {
-    "arsenal", "aston villa", "bournemouth", "brentford", "brighton & hove albion", "burnley",
-    "chelsea", "crystal palace", "everton", "fulham", "liverpool", "luton town", "manchester city",
-    "manchester united", "newcastle united", "nottingham forest", "sheffield united",
-    "tottenham hotspur", "west ham united", "wolverhampton wanderers",
-    "aberdeen", "celtic", "dundee", "dundee united", "heart of midlothian", "hibernian",
-    "kilmarnock", "livingston", "motherwell", "rangers", "ross county", "st. johnstone", "st. mirren",
-    "aberystwyth town", "airbus uk broughton", "bala town", "barry town united", "caernarfon town",
-    "cardiff metropolitan university", "connah's quay nomads", "flint town united",
-    "haverfordwest county", "newtown", "penybont", "the new saints",
-    "ballymena united", "carrick rangers", "cliftonville", "coleraine", "crusaders",
-    "dungannon swifts", "glenavon", "glentoran", "larne", "linfield", "newry city", "portadown",
-    "real madrid", "barcelona", "psg", "bayern", "juve",
-    "atleti", "milan", "inter", "dortmund", "napoli",
-    "rb leipzig", "sevilla", "roma", "lazio", "bayer leverkusen",
-    "lyon", "ajax", "benfica", "shakhtar", "porto",
-    "sporting", "villarreal", "atalanta", "galatasaray", "fenerbahçe",
-    "marseille", "zenit", "salzburg", "dynamo kyiv", "brugge",
-    "flamengo", "river", "boca", "são paulo", "palmeiras",
-    "santos", "grêmio", "monterrey", "tigres", "al ahly",
-    "zamalek", "sundowns", "al-hilal", "jeonbuk", "kashima", 
-    "ulsan", "club américa", "independiente", "peñarol", "nacional"
+    "Arsenal", "Aston Villa", "Bournemouth", "Brentford", "Brighton & Hove Albion", "Burnley",
+    "Chelsea", "Crystal Palace", "Everton", "Fulham", "Liverpool", "Luton Town", "Manchester City",
+    "Manchester United", "Newcastle United", "Nottingham Forest", "Sheffield United",
+    "Tottenham Hotspur", "West Ham United", "Wolverhampton Wanderers",
+    "Aberdeen", "Celtic", "Dundee", "Dundee United", "Heart of Midlothian", "Hibernian",
+    "Kilmarnock", "Livingston", "Motherwell", "Rangers", "Ross County", "St. Johnstone", "St. Mirren",
+    "Aberystwyth Town", "Airbus UK Broughton", "Bala Town", "Barry Town United", "Caernarfon Town",
+    "Cardiff Metropolitan University", "Connah's Quay Nomads", "Flint Town United",
+    "Haverfordwest County", "Newtown", "Penybont", "The New Saints",
+    "Ballymena United", "Carrick Rangers", "Cliftonville", "Coleraine", "Crusaders",
+    "Dungannon Swifts", "Glenavon", "Glentoran", "Larne", "Linfield", "Newry City", "Portadown",
+    "Real Madrid", "Barcelona", "PSG", "Bayern", "Juve",
+    "Atleti", "Milan", "Inter", "Dortmund", "Napoli",
+    "RB Leipzig", "Sevilla", "Roma", "Lazio", "Bayer Leverkusen",
+    "Lyon", "Ajax", "Benfica", "Shakhtar", "Porto",
+    "Sporting", "Villarreal", "Atalanta", "Galatasaray", "Fenerbahçe",
+    "Marseille", "Zenit", "Salzburg", "Dynamo Kyiv", "Brugge",
+    "Flamengo", "River", "Boca", "São Paulo", "Palmeiras",
+    "Santos", "Grêmio", "Monterrey", "Tigres", "Al Ahly",
+    "Zamalek", "Sundowns", "Al-Hilal", "Jeonbuk", "Kashima", 
+    "Ulsan", "Club América", "Independiente", "Peñarol", "Nacional"
 }
 
 leagues = {
-    "NFL", "NBA", "MLB", "NHL", "MLS",
-    "WNBA", "NWSL", "CFL", "XFL", "USFL",
-    "MLR", "PLL", "NLL", "USL", "USL1",
-    "USL2", "MLSNP", "AHL", "ECHL", "G League",
-    "ATP", "WTA", "PGA", "LIV", "INDYCAR",
-    "NASCAR"
+    "nfl", "nba", "mlb", "nhl", "mls",
+    "wnba", "nwsl", "cfl", "xfl", "usfl",
+    "mlr", "pll", "nll", "usl", "usl1",
+    "usl2", "mlsnp", "ahl", "echl", "g league",
+    "atp", "wta", "pga", "liv", "indycar",
+    "nascar"
 }
 
 crypto = {
@@ -201,20 +233,15 @@ us_teams = {
     'wash', 'wazu', 'wcu', 'wis', 'wmu', 'wvu', 'wyo'
 }
 
-
-def extract_named_entities(text):
-    """Extract Named Entities using NLTK and ensure they are capitalized."""
-    named_entities = set()
-    words = word_tokenize(text)
-    pos_tags = pos_tag(words)
-    chunks = ne_chunk(pos_tags)
-
-    for chunk in chunks:
-        if isinstance(chunk, Tree):  # Check if chunk is a named entity
-            entity = " ".join(c[0] for c in chunk)
-            named_entities.add(entity)  # Ensures proper capitalization
-    
-    return named_entities
+category_keywords = {
+    "markets": financial_markets_keywords,
+    "cryptocurrency": cryptocurrency_keywords,
+    "us": us_news_keywords,
+    "technology": technology_keywords,
+    "world": world_affairs_keywords,
+    "sports": sports_keywords,
+    "science": science_keywords
+}
 
 @app.route("/process", methods=["POST"])
 def process_article():
@@ -247,28 +274,32 @@ def process_article():
             logging.error(f"Error during sentiment analysis: {e}")
             return jsonify({"error": "Failed to perform sentiment analysis"}), 500
 
-        # Extract Named Entities using NLTK
-        try:
-            named_entities = extract_named_entities(truncated_text)
-            tags.update(named_entities)
-            logging.debug(f"Extracted tags from named entities: {tags}")
-        except Exception as e:
-            logging.error(f"Error during NER extraction: {e}")
-            return jsonify({"error": "Failed to extract named entities"}), 500
+        # Keyword matching based on category
+        if category in category_keywords:
+            try:
+                for keyword in category_keywords[category]:
+                    if keyword in text.lower():
+                        tags.add(keyword.title())
 
-        except Exception as e:
-            logging.error(f"Error during tickers search: {e}")
-            return jsonify({"error": "Failed to search tickers"}), 500
-        
+                words_cleaned = {re.sub(r"[^\w\s]", "", word) for word in text.split()}
+                for word in words_cleaned:
+                    if word.lower() in agencies and all(word.lower() != tag.lower() for tag in tags):
+                        tags.add(word.upper())
+            except Exception as e:
+                    logging.error(f"Error during keyword search: {e}")
+                    return jsonify({"error": "Failed to search keywords"}), 500
+
         # Perform Tickers Search only if category is 'markets'
         if category and category.lower() == "markets":
             try:
+                # Match full company names in text
+                for company in companies:
+                    if company in text and all(company.lower() != tag.lower() for tag in tags):
+                        tags.add(company)
+
                 words_cleaned = {re.sub(r"[^\w\.\-]", "", word) for word in text.split()}  # Preserve "." and "-"
-                
                 for word in words_cleaned:
-                    if word.title() in companies and all(word.lower() != tag.lower() for tag in tags):
-                        tags.add(word)  # Keep tickers as they are
-                    if word.upper() in tickers and all(word.lower() != tag.lower() for tag in tags):
+                    if word.lower() in tickers and all(word.lower() != tag.lower() for tag in tags):
                         tags.add(word.upper())  # Keep tickers as they are
                     if word.lower() in crypto and all(word.lower() != tag.lower() for tag in tags):
                         tags.add(word.upper())  # Keep tickers as they are
@@ -288,9 +319,8 @@ def process_article():
                 words_cleaned = {re.sub(r"[^\w\s]", "", word) for word in text.split()}  # Normalize words
 
                 for word in words_cleaned:
-                    if word in crypto_names and all(word.lower() != tag.lower() for tag in tags):
-                        tags.add(word)  # Capitalize for better formatting
-
+                    if word.lower() in crypto_names and all(word.lower() != tag.lower() for tag in tags):
+                        tags.add(word.title())  # Capitalize for better formatting
                     if word.lower() in crypto and all(word.lower() != tag.lower() for tag in tags):
                         tags.add(word.upper())  # Keep tickers as they are
             except Exception as e:
@@ -299,26 +329,66 @@ def process_article():
 
         if category and category.lower() == "sports":
             try:
-                words_cleaned = {re.sub(r"[^\w\.\-]", "", word.lower()) for word in text.split()}  # Preserve "." and "-"
-                
-                for word in words_cleaned:
-                    if word.lower() in football and all(word.lower() != tag.lower() for tag in tags):
-                        tags.add(word)  # Keep tickers as they are
+                # Match full football club names in text
+                for club in football:
+                    if club in text and all(club.lower() != tag.lower() for tag in tags):
+                        tags.add(club)
+
+                words_cleaned = {re.sub(r"[^\w\.\-]", "", word) for word in text.split()}  # Preserve "." and "-"
                 for word in words_cleaned:
                     if word.lower() in us_teams and all(word.lower() != tag.lower() for tag in tags):
                         tags.add(word)  # Keep tickers as they are
                 for word in words_cleaned:
                     if word.lower() in leagues and all(word.lower() != tag.lower() for tag in tags):
-                        tags.add(word)  # Keep tickers as they are
+                        tags.add(word.upper())  # Keep tickers as they are
             except Exception as e:
                 logging.error(f"Error during tickers search: {e}")
                 return jsonify({"error": "Failed to search tickers"}), 500
 
-        # **Filter Out Stopwords from Tags**
-        tags = {tag for tag in tags if tag.lower() not in stopwords_set}
+        custom_formatting = {
+            # Financial & Markets
+            "s&p": "S&P",
+            "sp500": "S&P 500",
+            "ftse": "FTSE",
+            "etf": "ETF",
+            "ipo": "IPO",
+            "gdp": "GDP",
 
-        # call upper on agencies tags
-        final_tags = {tag.upper() if tag.lower() in agencies else tag for tag in tags}
+            # Cryptocurrency
+            "nft": "NFT",
+            "defi": "DeFi",
+            "dex": "DEX",
+            "cex": "CEX",
+            "metamask": "MetaMask",
+            "defi lending": "DeFi Lending",
+
+            # Technology
+            "ai": "AI",
+            "chatgpt": "ChatGPT",
+            "openai": "OpenAI",
+            "generative ai": "Generative AI",
+            "ai race": "AI Race",
+            "ai regulation": "AI Regulation",
+            "neuralink": "Neuralink",
+
+            # World Affairs
+            "un": "UN",
+            "icj ruling": "ICJ Ruling",
+            
+            # Science
+            "covid": "COVID",
+            "covid variant": "COVID Variant",
+            "ai": "AI",
+        }
+
+        final_tags = set()
+        for tag in tags:
+            tag_lower = tag.lower()
+            if tag_lower in custom_formatting:
+                final_tags.add(custom_formatting[tag_lower])
+            else:
+                final_tags.add(tag)
+
 
         return jsonify({
             "sentiment": sentiment,
